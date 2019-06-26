@@ -172,15 +172,8 @@ def process_test_files(test_path,submission_path,path_to_track_dict,path_to_cat_
     path_to_cat_var_dict = "..\\data\\dicts\\cat_session_dicts.p"
     '''
 
-    submission_path =  "../_validation_test_proc/"
-    test_path = "../_validation_test/"
-    path_to_track_dict = "../track_data/track_dict.pickle"
-    path_to_cat_var_dict = "../track_data/cat_session_dicts.p"
-
     test_input_logs = sorted(glob.glob(test_path + "inp_*.csv"))
     test_input_hists = sorted(glob.glob(test_path + "pre_*.csv"))
-
-
 
     #test_input_logs.sort(key=lambda x: int(''.join(filter(str.isdigit, x))))
     #test_input_hists.sort(key=lambda x: int(''.join(filter(str.isdigit, x))))

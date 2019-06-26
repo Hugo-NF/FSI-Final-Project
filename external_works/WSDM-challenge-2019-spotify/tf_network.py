@@ -7,6 +7,7 @@ import datetime
 import time
 import glob
 import pandas as pd
+from tensorflow.contrib.rnn import *
 
 
 # use from_generator instead of current implementation.
