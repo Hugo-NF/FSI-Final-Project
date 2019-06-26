@@ -60,7 +60,7 @@ Sistema Operacional: Ubuntu 18.04 LTS
 Intel Core i7-6500U     @2.6 GHz  
 16 GB RAM DDR4          @2133 MHz  
 NVIDIA GeForce 930M  
-Sistema Operacional: Ubuntu 18.04 LTS  
+Sistema Operacional: Ubuntu 19.04  
 
 # Schedule
 |         | Hugo | José |
