@@ -172,10 +172,10 @@ def process_test_files(test_path,submission_path,path_to_track_dict,path_to_cat_
     path_to_cat_var_dict = "..\\data\\dicts\\cat_session_dicts.p"
     '''
 
-    submission_path =  "../_validation_test_proc/"
-    test_path = "../_validation_test/"
-    path_to_track_dict = "../track_data/track_dict.pickle"
-    path_to_cat_var_dict = "../track_data/cat_session_dicts.p"
+    # submission_path =  "../_validation_test_proc/"
+    # test_path = "../_validation_test/"
+    # path_to_track_dict = "../track_data/track_dict.pickle"
+    # path_to_cat_var_dict = "../track_data/cat_session_dicts.p"
 
     test_input_logs = sorted(glob.glob(test_path + "inp_*.csv"))
     test_input_hists = sorted(glob.glob(test_path + "pre_*.csv"))
@@ -280,8 +280,8 @@ if __name__ == "__main__":
 
 
     #process the test data
-    path_to_test = "data/test_set"
-    path_to_processed_test = "data/test_set_proc"
+    path_to_test = "data/test_set/"
+    path_to_processed_test = "data/test_set_proc/"
     #There was no small example of the test files, but is again just putting all the test files into the folder at test_path
     process_test_files(path_to_test, path_to_processed_test, path_to_track_dict, path_to_cat_var_dict)
 
