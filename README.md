@@ -81,3 +81,13 @@ Sistema Operacional: Ubuntu 19.04
 
 [5] **Skip prediction using boosting trees based on acoustic features of tracks in sessions** - Andrés F., Dmitry B., Xavier S. Accessed at: 14 Jun, 2019. Available at: https://arxiv.org/pdf/1903.11833.pdf
 
+## LeaderBoard References
+[1] - Using RNN - https://arxiv.org/pdf/1902.04743.pdf
+
+[2] - Using RNN - https://arxiv.org/pdf/1903.08408.pdf
+
+[3] - Using RNN and Boosting tree - https://people.eng.unimelb.edu.au/jianzhongq/wsdm19-cup-reports/reports/report17.pdf
+
+[14] - Boosting Tree - https://arxiv.org/pdf/1903.11833.pdf
+
+https://arxiv.org/pdf/1901.08203.pdf

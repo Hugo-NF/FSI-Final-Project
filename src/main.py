@@ -1,8 +1,7 @@
-import plot_tools as tools
+from src.data_load import DatasetLoader
 
 
-def main():
-    print('Do nothing')
+loader = DatasetLoader('../data/test_split/', '../data/test_split/', '../data/test_split/')
 
+loader.generate_test_split()
 
-main()
