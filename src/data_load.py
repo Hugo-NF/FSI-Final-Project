@@ -37,20 +37,29 @@ class DatasetLoader:
             session_ids = np.unique(train_set['session_id'].to_numpy())
 
             # Count the sessions
-            no_sessions = len(session_ids) - 2
+            no_sessions = len(session_ids) - 1
             test_size = math.ceil(no_sessions * test_set_size)
 
             # Generate the split
-            test_sessions = session_ids[0:math.ceil((test_size/2))]
-            prehist_sessions = session_ids[math.ceil((test_size/2)):test_size]
+            test_sessions = session_ids[0:test_size]
             train_sessions = session_ids[test_size:no_sessions+1]
 
             # Build new DataFrames by filtering the original
-            test_df = train_set['session_id'].isin(test_sessions)
-            prehist_df = train_set['session_id'].isin(prehist_sessions)
-            train_df = train_set['session_id'].isin(train_sessions)
+            test_f_df = train_set[train_set['session_id'].isin(test_sessions)]
+            train_df = train_set[train_set['session_id'].isin(train_sessions)]
+
+            # Test sessions split
+            sessions = test_f_df.groupby('session_id')
+            test_df = pd.DataFrame()
+            prehist_df = pd.DataFrame()
+
+            for session in test_sessions:
+                data = sessions.get_group(session)
+                half_size = math.ceil(len(data)/2)
+                test_df = test_df.append(data.iloc[0:half_size])
+                prehist_df = prehist_df.append(data.iloc[half_size:])
 
             # Writing DataFrames to files
-            train_set[test_df].to_csv(path_or_buf=self.test_path + "log_input_{id}.csv".format(id=file_id), index=False)
-            train_set[prehist_df].to_csv(path_or_buf=self.test_path + "log_prehist_{id}.csv".format(id=file_id), index=False)
-            train_set[train_df].to_csv(path_or_buf=filename, index=False)
+            test_df.to_csv(path_or_buf=self.test_path + "log_input_{id}.csv".format(id=file_id), index=False)
+            prehist_df.to_csv(path_or_buf=self.test_path + "log_prehist_{id}.csv".format(id=file_id), index=False)
+            train_df.to_csv(path_or_buf=filename, index=False)
