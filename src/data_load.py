@@ -25,8 +25,6 @@ class DatasetLoader:
             return pd.read_csv(filename, names=self.train_columns).to_dict()
         else:
             return pd.read_csv(filename)
-            # TODO - moai estava saindo 2 cabeçalhos, por conta disso aqui
-            # return pd.read_csv(filename, names=self.train_columns)
 
     def generate_test_split(self, test_set_size=0.1):
         filenames = sorted(glob(self.train_path + "log_*.csv"))
@@ -60,8 +58,8 @@ class DatasetLoader:
             for session in test_sessions:
                 data = sessions.get_group(session)
                 half_size = math.ceil(len(data)/2)
-                test_df = test_df.append(data.iloc[0:half_size])
-                prehist_df = prehist_df.append(data.iloc[half_size:])
+                prehist_df = test_df.append(data.iloc[0:half_size])
+                test_df = prehist_df.append(data.iloc[half_size:])
 
             # Writing DataFrames to files
             test_df.to_csv(path_or_buf=self.test_path + "log_input_{id}.csv".format(id=file_id), index=False)

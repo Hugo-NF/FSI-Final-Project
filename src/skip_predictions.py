@@ -289,10 +289,11 @@ def generate_submission(f_test, f_history, i, get_ground_truth, models):
             line = last_session+","+','.join(map(str,output))
             print(line, file=fout, flush=True)
 
+
 if __name__ == "__main__":
     num_workers = 10
     offset = 0
-    step = ''
+    step = 'features'
     if len (sys.argv) > 1 :
         offset = int(sys.argv[2])
         step = sys.argv[1]
@@ -307,8 +308,7 @@ if __name__ == "__main__":
     tracks_features_df = pd.concat(list_)
     tracks_features_df.set_index('track_id', inplace=True)
 
-    
-    if 'features':
+    if step == 'features':
         pool = ThreadPool(num_workers)
 
         for i,f_input in enumerate(input_logs[offset:offset+num_workers]):
@@ -317,15 +317,15 @@ if __name__ == "__main__":
         pool.close()
         pool.join()
 
-        bashCommand = "awk -F \"\\\"* \\\"*\" '{for (i=1; i <= 65; i++) { split($i,a,\":\"); if (a[1] == '13') print >> (\"data\/features_split\/\"a[2]\".svm\")}}' data\/features_split\/*.svm"
+        bashCommand = "awk -F \"\\\"* \\\"*\" '{for (i=1; i <= 65; i++){ split($i,a,\":\"); if (a[1] == '13') print >> (\"{features_split_path}\"a[2]\".svm\")}}' {features_split_path}\/*.svm".format(features_split_path=train_features_fname)
         import os
         os.system(bashCommand)
 
-    # elif not 'train':
+    # elif step == 'train':
         for i in range(num_workers):
             train_xgboost(offset+1+i)
 
-    # elif 'predict':
+    # elif step == 'predict':
         models = []
         for j in range(10):
             model = xgboost.Booster()  # init model
