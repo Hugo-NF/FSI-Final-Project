@@ -94,8 +94,6 @@ def get_ground_truth(f_input, tracks_features_df, i):
                 completed_index += len(last_session_tracks)
                 continue
 
-            print('section n: {n} of size: {n_2}'.format(n=current_index, n_2=partial_length))
-
             first_session_tracks = df.loc[current_index:current_index+(partial_length/2)-1]
             last_session_item = first_session_tracks.iloc[-1]
                       
@@ -310,7 +308,7 @@ if __name__ == "__main__":
     tracks_features_df.set_index('track_id', inplace=True)
 
     
-    if not 'features':
+    if 'features':
         pool = ThreadPool(num_workers)
 
         for i,f_input in enumerate(input_logs[offset:offset+num_workers]):
