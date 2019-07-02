@@ -334,7 +334,7 @@ if __name__ == "__main__":
             model.load_model(xgboost_model_location+str(j+1)+".npz")  # load data
             models.append(model)
 
-        # pool = ThreadPool(num_workers)
+        pool = ThreadPool(num_workers)
 
         for i,f_test in enumerate(test_input[offset:offset+num_workers]):
             f_history = test_prehistory[offset]
