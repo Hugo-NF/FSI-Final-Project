@@ -24,11 +24,15 @@ class DatasetLoader:
         elif format == "dict":
             return pd.read_csv(filename, names=self.train_columns).to_dict()
         else:
-            return pd.read_csv(filename, names=self.train_columns)
+            return pd.read_csv(filename)
+            # TODO - moai estava saindo 2 cabeçalhos, por conta disso aqui
+            # return pd.read_csv(filename, names=self.train_columns)
 
     def generate_test_split(self, test_set_size=0.1):
         filenames = sorted(glob(self.train_path + "log_*.csv"))
         for filename in filenames:
+            print("Splitting file of name: {f_name}".format(f_name=filename))
+
             # Opens train_set
             file_id = re.search("log_(.*).csv", filename).group(1)
             train_set = self.read_from_csv(filename)
