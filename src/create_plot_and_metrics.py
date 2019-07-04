@@ -53,10 +53,21 @@ def get_accuracy(predictions):
     # Gets Mean Average Acurracy
     MAA = sum(AA)/len(AA)
 
-    # Show metric
-    A = A*100
-    print("Firsts Predictions Accuracy: {A_0}%, {A_1}%, {A_2}%".format(A_0=round(A[0], 2), A_1=round(A[1], 2), A_2=round(A[2], 2)))
-    print("MAA: {M_AA}%".format(M_AA=round(MAA*100,2)))
+    #------------ Show metrics----------
+    method_name = 'Boosting'
+    saves_path = '../plots_and_tables'
+
+    # Convert metrics to percent mode and rounded to 2
+    A = list(map(lambda a: str(round(a*100,2)), A))
+    MAA = round(MAA*100, 2)
+    
+    with open(saves_path+'/Challenge_metrics_'+method_name+'.txt', 'w') as file:
+        file.write('Firt Predictions Accuracy: {A}'.format(A='%, '.join(A)+'%'))
+        print('Firt Predictions Accuracy: {A}'.format(A='%, '.join(A)+'%'))
+        file.write('MAA: {MAA}'.format(MAA=MAA))
+        print('MAA: {MAA}'.format(MAA=MAA))
+
+
 
     # Plots for first session; First music prediction and all predictions
     first_session_true = list(true_values.iloc[0].dropna())
@@ -65,29 +76,56 @@ def get_accuracy(predictions):
     first_track_pred = df_pred[0].dropna().as_matrix().ravel()
     all_true = true_values.dropna().as_matrix().ravel()
     all_pred = df_pred.dropna().as_matrix().ravel()
+    
 
     # Confusion matrix plots
     plt_tools.plot_confusion_matrix(y_pred=first_session_pred,
-                                    y_true=first_session_true)
+                                    y_true=first_session_true,
+                                    normalize=True,
+                                    save_image=True,
+                                    image_path=saves_path,
+                                    image_name='Confusion_Matrix_'+method_name+'_first_session'
+                                    )
 
     plt_tools.plot_confusion_matrix(y_pred=first_track_pred,
-                                    y_true=first_track_true)
+                                    y_true=first_track_true,
+                                    normalize=True,
+                                    save_image=True,
+                                    image_path=saves_path,
+                                    image_name='Confusion_Matrix_'+method_name+'_first_music'
+                                    )
 
     plt_tools.plot_confusion_matrix(y_pred=all_pred,
-                                    y_true=all_true)
+                                    y_true=all_true,
+                                    normalize=True,
+                                    save_image=True,
+                                    image_path=saves_path,
+                                    image_name='Confusion_Matrix_'+method_name
+                                    )
 
     # Normal Metrics plots
     plt_tools.get_and_plot_metrics(y_pred=first_session_pred,
                                    y_true=first_session_true,
-                                   plot_table=True)
+                                   plot_table=True,
+                                   save_table=True,
+                                   file_path=saves_path,
+                                   file_name='Normal_Metrics_'+method_name+'_first_session')
 
     plt_tools.get_and_plot_metrics(y_pred=first_track_pred,
                                    y_true=first_track_true,
-                                   plot_table=True)
+                                   plot_table=True,
+                                   save_table=True,
+                                   file_path=saves_path,
+                                   file_name='Normal_Metrics_'+method_name+'_first_music'
+                                   )
 
     plt_tools.get_and_plot_metrics(y_pred=all_pred,
                                    y_true=all_true,
-                                   plot_table=True)
+                                   plot_table=True,
+                                   save_table=True,
+                                   file_path=saves_path,
+                                   file_name='Normal_Metrics_'+method_name
+                                   )
 
     return
 
