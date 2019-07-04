@@ -26,7 +26,7 @@ scoring = 'accuracy'
 # X_train, X_validation, Y_train, Y_validation = model_selection.train_test_split(X, y, test_size=0.2, random_state=seed)
 
 # Algoritms and classifiers array
-models = [('KNN', KNeighborsClassifier()),
+models = [('knn', KNeighborsClassifier()),
           ('SVM', SVC(gamma='auto'))]
 
 # Run

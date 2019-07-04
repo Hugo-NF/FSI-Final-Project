@@ -7,28 +7,34 @@ import numpy as np
 from multiprocessing.dummy import Pool as ThreadPool
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.datasets import dump_svmlight_file
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.externals import joblib
+import glob
+import sklearn.datasets as reader
 
+model_name = "boosting"
 
 data_path = '../data/'
 training_path = data_path + 'training_set/'
-input_logs = sorted(glob.glob(training_path + "*.csv"))
+input_logs = sorted(glob.glob(training_path + "*mini.csv"))
 
 features_path = '../data/track_features/'
 
 train_features_fname = '../data/features_split/'
 
-xgboost_model_location = '../data/models/xgboost_model'
+xgboost_model_location = '../data/models/' + model_name + '/'
 
 test_path = '../data/test_set/'
 test_prehistory = sorted(glob.glob(test_path + "log_prehist*.csv"))
 test_input = sorted(glob.glob(test_path + "log_input*.csv"))
 
-output_fname = '../data/output/predictions_'
+output_fname = '../data/output/' + model_name + '_predictions/'
 
 
 features = ['us_popularity_estimate', 'acousticness', 'beat_strength', 'bounciness', 'danceability',
        'dyn_range_mean', 'energy', 'flatness', 'instrumentalness',
        'liveness', 'loudness', 'mechanism','tempo' , 'organism', 'speechiness', 'valence']
+
 
 
 def extract_features_session(tracks):
@@ -179,6 +185,21 @@ def train_xgboost(position_sk):
     )
     model.save_model(xgboost_model_location+str(position_sk)+'.npz')
 
+def train_knn(position_sk):
+    print("Training KNN_{}".format(position_sk))
+    filenames = glob.glob(train_features_fname + "*.svm")
+    data = reader.load_svmlight_files(filenames)
+
+    params = {
+        'n_neighbors': 5, 'weights': 'uniform', 'algorithm': 'auto',
+        'leaf_size': 30, 'p': 2, 'metric': 'minkowski',
+        'metric_params': None, 'n_jobs': None
+    }
+
+    model = KNeighborsClassifier(**params)
+    model.fit(data[0], data[1])
+    joblib.dump(model, xgboost_model_location + "KNN_"+str(position_sk)+".pkl")
+
 
 def generate_submission(f_test, f_history, i, get_ground_truth, models):
     dv = DictVectorizer().fit([{'us_popularity_estimate': 0., 'acousticness': 0., 'beat_strength': 0., 'bounciness': 0.,
@@ -280,11 +301,19 @@ def generate_submission(f_test, f_history, i, get_ground_truth, models):
                 all_track_features.update({k+'_pos': v for k, v in features_completed.items()})
 
                 pred_X_feat = dv.transform(all_track_features)
-                dfeat = xgboost.DMatrix(pred_X_feat)
 
-                for model in models:
-                    score = model.predict(dfeat)[0]
-                    output.append(score)
+                if model_name == "boosting":
+                    dfeat = xgboost.DMatrix(pred_X_feat)
+
+                    for model in models:
+                        score = model.predict(dfeat)[0]
+                        output.append(score)
+
+                elif model_name == "knn":
+                    for model in models:
+                        score = model.predict_proba(pred_X_feat)
+                        output.append(score)
+
             output.append(last_session_item['skip_2'])
             line = last_session+","+','.join(map(str,output))
             print(line, file=fout, flush=True)
@@ -321,16 +350,24 @@ if __name__ == "__main__":
         import os
         os.system(bashCommand)
 
-    # elif step == 'train':
+    elif step == 'train':
         for i in range(num_workers):
-            train_xgboost(offset+1+i)
+            if model_name == "boosting":
+                train_xgboost(offset+1+i)
+            elif model_name == "knn":
+                train_knn(i)
 
-    # elif step == 'predict':
+    elif step == 'predict':
         models = []
         for j in range(10):
-            model = xgboost.Booster()  # init model
-            model.load_model(xgboost_model_location+str(j+1)+".npz")  # load data
-            models.append(model)
+            if model_name == "boosting":
+                model = xgboost.Booster()  # init model
+                model.load_model(xgboost_model_location+str(j+1)+".npz")  # load data
+                models.append(model)
+
+            elif model_name == "knn":
+                model = joblib.load(xgboost_model_location + "KNN_" + str(j) + ".pkl")
+                models.append(model)
 
         pool = ThreadPool(num_workers)
 
