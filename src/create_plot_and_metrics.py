@@ -63,7 +63,7 @@ def get_accuracy(predictions):
     MAA = round(MAA*100, 2)
     
     with open(saves_path+'/Challenge_metrics_'+method_name+'.txt', 'w') as file:
-        file.write('Firt Predictions Accuracy: {A}'.format(A='%, '.join(A)+'%'))
+        file.write('Firt Predictions Accuracy: {A}\n'.format(A='%, '.join(A)+'%'))
         print('Firt Predictions Accuracy: {A}'.format(A='%, '.join(A)+'%'))
         file.write('MAA: {MAA}%'.format(MAA=MAA))
         print('MAA: {MAA}%'.format(MAA=MAA))
