@@ -16,9 +16,10 @@ pred_input = sorted(glob.glob(pred_path + "*.txt"))
 output_fname = '../data/submission_output/'
 missing_output_file = '../data/missing_files/missing.txt'
 
+
 def get_accuracy(predictions):
     # Indicator for if the skip prediction was correct. 1 -> correct predicted
-    L = lambda x: 1 if x[0] == x[1] else 0
+    L = lambda x: 1 if x[0] == x[1] else (np.NaN if np.isnan(x[0]) else 0)
 
     # Convert predictions to Dataframe and matriz
     pred_list = predictions.values()
@@ -42,18 +43,18 @@ def get_accuracy(predictions):
     # Gets A(i) = Accuracy at position i of the track (mean of each session correct predictions of track i)
     A = np.zeros(10)
     for i in range(len(A)):
-        A[i] = sum(df_indicator[i]) / len(df_pred[i].dropna())
+        A[i] = sum(df_indicator[i].dropna()) / len(df_pred[i].dropna())
 
     # Gets Average Acurracy of each session
     AA = np.zeros(len(predictions))
     for i in range(len(df_indicator)):
-        indicator_row_accuracy = A * df_indicator.iloc[i]
+        indicator_row_accuracy = (A * df_indicator.iloc[i]).dropna()
         AA[i] = sum(indicator_row_accuracy) / len(df_pred.iloc[i].dropna())
 
     # Gets Mean Average Acurracy
     MAA = sum(AA)/len(AA)
 
-    #------------ Show metrics----------
+    # ----------- Show metrics ----------
     method_name = 'Boosting'
     saves_path = '../plots_and_tables'
 
@@ -64,8 +65,8 @@ def get_accuracy(predictions):
     with open(saves_path+'/Challenge_metrics_'+method_name+'.txt', 'w') as file:
         file.write('Firt Predictions Accuracy: {A}'.format(A='%, '.join(A)+'%'))
         print('Firt Predictions Accuracy: {A}'.format(A='%, '.join(A)+'%'))
-        file.write('MAA: {MAA}'.format(MAA=MAA))
-        print('MAA: {MAA}'.format(MAA=MAA))
+        file.write('MAA: {MAA}%'.format(MAA=MAA))
+        print('MAA: {MAA}%'.format(MAA=MAA))
 
 
 
