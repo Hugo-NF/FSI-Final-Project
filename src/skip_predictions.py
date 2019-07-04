@@ -8,9 +8,12 @@ import numpy as np
 from multiprocessing.dummy import Pool as ThreadPool
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.datasets import dump_svmlight_file
+from sklearn.datasets import load_svmlight_file
+from sklearn.neural_network import MLPClassifier
+from joblib import dump, load
 
 # RUN CONTROL VARIABLES
-model_name = 'boosting'
+model_name = 'mlp'
 num_workers = 10
 offset = 0
 step = 'predict'  # features; train; predict
@@ -64,6 +67,13 @@ def extract_features_track(song):
 
 
 def extract_features_session_track(song, positive_tracks, negative_tracks):
+
+    if positive_tracks.empty:
+        positive_tracks.loc['0'] = [0 for _ in range(len(negative_tracks.iloc[0]))]
+
+    if negative_tracks.empty:
+        negative_tracks.loc['0'] = [0 for _ in range(len(positive_tracks.iloc[0]))]
+
     mean_duration_pos = (positive_tracks['duration'] - song['duration']).mean()
     mean_duration_neg = (negative_tracks['duration'] - song['duration']).mean()
 
@@ -77,7 +87,7 @@ def extract_features_session_track(song, positive_tracks, negative_tracks):
     mean_dot_vector_pos = positive_tracks[latent_vectors].dot(song[latent_vectors]).mean()
     mean_dot_vector_neg = negative_tracks[latent_vectors].dot(song[latent_vectors]).mean()
  
-    return {'pos_duration': mean_duration_pos, 
+    return {'pos_duration': mean_duration_pos,
             'neg_duration': mean_duration_neg,
             'pos_year': year_pos,
             'neg_year': year_neg,
@@ -204,6 +214,15 @@ def train_xgboost(position_sk):
     model.save_model(xgboost_model_location+str(position_sk)+'.npz')
 
 
+def train_mlp(position_sk):
+    clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2))
+    X, y = load_svmlight_file(train_features_fname+str(position_sk)+".svm")
+
+    clf.fit(X, y)
+
+    dump(clf, xgboost_model_location+str(position_sk)+'.joblib')
+
+
 def generate_submission(f_test, f_history, i, get_ground_truth, models):
     dv = DictVectorizer().fit([{'us_popularity_estimate': 0., 'acousticness': 0., 'beat_strength': 0., 'bounciness': 0.,
                                 'danceability': 0., 'dyn_range_mean': 0., 'energy': 0., 'flatness': 0.,
@@ -277,6 +296,9 @@ def generate_submission(f_test, f_history, i, get_ground_truth, models):
                     features_skipped = extract_features_session(skipped)
                     features_completed = extract_features_session(completed)
 
+                    features_skipped = {k: 0 if np.isnan(v) else v for k, v in features_skipped.items()}
+                    features_completed = {k: 0 if np.isnan(v) else v for k, v in features_completed.items()}
+
                     last_session_item = session_tracks.iloc[-1]
 
                     other_features = {}
@@ -312,7 +334,9 @@ def generate_submission(f_test, f_history, i, get_ground_truth, models):
                         score = model.predict(dfeat)[0]
                         output.append(score)
                 elif model_name == 'mlp':
-                    print('askdfj')
+                    for model in models:
+                        score = model.predict_proba(pred_X_feat)[0][0]
+                        output.append(score)
 
 
             output.append(last_session_item['skip_2'])
@@ -353,7 +377,7 @@ if __name__ == "__main__":
             if model_name == 'boosting':
                 train_xgboost(offset+1+i)
             elif model_name == 'mlp':
-                print('asdf')
+                train_mlp(offset + 1 + i)
 
     elif step == 'predict':
         models = []
@@ -362,7 +386,7 @@ if __name__ == "__main__":
                 model = xgboost.Booster()  # init model
                 model.load_model(xgboost_model_location+str(j+1)+".npz")  # load data
             elif model_name == 'mlp':
-                print('adfs')
+                model = load(xgboost_model_location+str(j+1)+'.joblib')
 
             models.append(model)
 
