@@ -4,17 +4,30 @@ import pandas as pd
 import glob
 import numpy as np
 from math import exp, ceil
+import os.path
 
 import src.plot_tools as plt_tools
+
+model_name = 'boosting'
+saves_path = '../plots_and_tables'
 
 test_path = '../data/test_set/'
 test_input = sorted(glob.glob(test_path + "log_input*.csv"))
 
-pred_path = '../data/output/'
+pred_path = '../data/output/'+model_name+'_predictions/'
 pred_input = sorted(glob.glob(pred_path + "*.txt"))
 
-output_fname = '../data/submission_output/'
-missing_output_file = '../data/missing_files/missing.txt'
+# VERIFY PATHS: verify if all paths exist
+if not os.path.exists(saves_path):
+    print('Training path not exit')
+if not os.path.exists(pred_path):
+    print('Features path not exit')
+if not os.path.exists(test_path):
+    print('Test path not exit')
+if not len(test_input):
+    print('There is no test input')
+if not len(pred_input):
+    print('There is no predictions')
 
 
 def get_accuracy(predictions):
@@ -55,14 +68,12 @@ def get_accuracy(predictions):
     MAA = sum(AA)/len(AA)
 
     # ----------- Show metrics ----------
-    method_name = 'Boosting'
-    saves_path = '../plots_and_tables'
 
     # Convert metrics to percent mode and rounded to 2
     A = list(map(lambda a: str(round(a*100,2)), A))
     MAA = round(MAA*100, 2)
     
-    with open(saves_path+'/Challenge_metrics_'+method_name+'.txt', 'w') as file:
+    with open(saves_path+'/Challenge_metrics_'+model_name+'.txt', 'w') as file:
         file.write('Firt Predictions Accuracy: {A}\n'.format(A='%, '.join(A)+'%'))
         print('Firt Predictions Accuracy: {A}'.format(A='%, '.join(A)+'%'))
         file.write('MAA: {MAA}%'.format(MAA=MAA))
@@ -85,7 +96,7 @@ def get_accuracy(predictions):
                                     normalize=True,
                                     save_image=True,
                                     image_path=saves_path,
-                                    image_name='Confusion_Matrix_'+method_name+'_first_session'
+                                    image_name='Confusion_Matrix_'+model_name+'_first_session'
                                     )
 
     plt_tools.plot_confusion_matrix(y_pred=first_track_pred,
@@ -93,7 +104,7 @@ def get_accuracy(predictions):
                                     normalize=True,
                                     save_image=True,
                                     image_path=saves_path,
-                                    image_name='Confusion_Matrix_'+method_name+'_first_music'
+                                    image_name='Confusion_Matrix_'+model_name+'_first_music'
                                     )
 
     plt_tools.plot_confusion_matrix(y_pred=all_pred,
@@ -101,7 +112,7 @@ def get_accuracy(predictions):
                                     normalize=True,
                                     save_image=True,
                                     image_path=saves_path,
-                                    image_name='Confusion_Matrix_'+method_name
+                                    image_name='Confusion_Matrix_'+model_name
                                     )
 
     # Normal Metrics plots
@@ -110,14 +121,14 @@ def get_accuracy(predictions):
                                    plot_table=True,
                                    save_table=True,
                                    file_path=saves_path,
-                                   file_name='Normal_Metrics_'+method_name+'_first_session')
+                                   file_name='Normal_Metrics_'+model_name+'_first_session')
 
     plt_tools.get_and_plot_metrics(y_pred=first_track_pred,
                                    y_true=first_track_true,
                                    plot_table=True,
                                    save_table=True,
                                    file_path=saves_path,
-                                   file_name='Normal_Metrics_'+method_name+'_first_music'
+                                   file_name='Normal_Metrics_'+model_name+'_first_music'
                                    )
 
     plt_tools.get_and_plot_metrics(y_pred=all_pred,
@@ -125,7 +136,7 @@ def get_accuracy(predictions):
                                    plot_table=True,
                                    save_table=True,
                                    file_path=saves_path,
-                                   file_name='Normal_Metrics_'+method_name
+                                   file_name='Normal_Metrics_'+model_name
                                    )
 
     return

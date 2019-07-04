@@ -1,4 +1,5 @@
 import sys
+import os.path
 import pandas as pd
 import glob
 import math
@@ -8,7 +9,13 @@ from multiprocessing.dummy import Pool as ThreadPool
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.datasets import dump_svmlight_file
 
+# RUN CONTROL VARIABLES
+model_name = 'boosting'
+num_workers = 10
+offset = 0
+step = 'predict'  # features; train; predict
 
+# PATHS CONTROL VARIABLES
 data_path = '../data/'
 training_path = data_path + 'training_set/'
 input_logs = sorted(glob.glob(training_path + "*.csv"))
@@ -17,14 +24,31 @@ features_path = '../data/track_features/'
 
 train_features_fname = '../data/features_split/'
 
-xgboost_model_location = '../data/models/xgboost_model'
+xgboost_model_location = '../data/models/'+model_name+'/'
 
 test_path = '../data/test_set/'
 test_prehistory = sorted(glob.glob(test_path + "log_prehist*.csv"))
 test_input = sorted(glob.glob(test_path + "log_input*.csv"))
 
-output_fname = '../data/output/predictions_'
+output_fname = '../data/output/'+model_name+'_predictions/'
 
+# VERIFY PATHS: verify if all paths exist
+if not os.path.exists(training_path):
+    print('Training path not exit')
+if not os.path.exists(output_fname):
+    print('Output path for selected model not exit')
+if not os.path.exists(features_path):
+    print('Features path not exit')
+if not os.path.exists(xgboost_model_location):
+    print('Model path for selected model not exit')
+if not os.path.exists(test_path):
+    print('Test path not exit')
+if not len(input_logs):
+    print('There is no input logs')
+if not len(test_prehistory):
+    print('There is no prehistory test')
+if not len(test_input):
+    print('There is no test input')
 
 features = ['us_popularity_estimate', 'acousticness', 'beat_strength', 'bounciness', 'danceability',
        'dyn_range_mean', 'energy', 'flatness', 'instrumentalness',
@@ -280,20 +304,23 @@ def generate_submission(f_test, f_history, i, get_ground_truth, models):
                 all_track_features.update({k+'_pos': v for k, v in features_completed.items()})
 
                 pred_X_feat = dv.transform(all_track_features)
-                dfeat = xgboost.DMatrix(pred_X_feat)
 
-                for model in models:
-                    score = model.predict(dfeat)[0]
-                    output.append(score)
+                if model_name == 'boosting':
+                    dfeat = xgboost.DMatrix(pred_X_feat)
+
+                    for model in models:
+                        score = model.predict(dfeat)[0]
+                        output.append(score)
+                elif model_name == 'mlp':
+                    print('askdfj')
+
+
             output.append(last_session_item['skip_2'])
             line = last_session+","+','.join(map(str,output))
             print(line, file=fout, flush=True)
 
 
 if __name__ == "__main__":
-    num_workers = 10
-    offset = 0
-    step = 'features'
     if len (sys.argv) > 1 :
         offset = int(sys.argv[2])
         step = sys.argv[1]
@@ -321,15 +348,22 @@ if __name__ == "__main__":
         import os
         os.system(bashCommand)
 
-    # elif step == 'train':
+    elif step == 'train':
         for i in range(num_workers):
-            train_xgboost(offset+1+i)
+            if model_name == 'boosting':
+                train_xgboost(offset+1+i)
+            elif model_name == 'mlp':
+                print('asdf')
 
-    # elif step == 'predict':
+    elif step == 'predict':
         models = []
         for j in range(10):
-            model = xgboost.Booster()  # init model
-            model.load_model(xgboost_model_location+str(j+1)+".npz")  # load data
+            if model_name == 'boosting':
+                model = xgboost.Booster()  # init model
+                model.load_model(xgboost_model_location+str(j+1)+".npz")  # load data
+            elif model_name == 'mlp':
+                print('adfs')
+
             models.append(model)
 
         pool = ThreadPool(num_workers)
