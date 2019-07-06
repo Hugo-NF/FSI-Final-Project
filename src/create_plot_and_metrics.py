@@ -8,7 +8,7 @@ import os.path
 
 import src.plot_tools as plt_tools
 
-model_name = 'boosting'
+model_name = 'svc'
 saves_path = '../plots_and_tables'
 
 test_path = '../data/test_set/'

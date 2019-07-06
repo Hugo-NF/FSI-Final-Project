@@ -11,9 +11,10 @@ from sklearn.datasets import dump_svmlight_file
 from sklearn.datasets import load_svmlight_file
 from sklearn.neural_network import MLPClassifier
 from joblib import dump, load
+from sklearn import svm
 
 # RUN CONTROL VARIABLES
-model_name = 'mlp'
+model_name = 'svc'
 num_workers = 10
 offset = 0
 step = 'predict'  # features; train; predict
@@ -214,8 +215,16 @@ def train_xgboost(position_sk):
     model.save_model(xgboost_model_location+str(position_sk)+'.npz')
 
 
-def train_mlp(position_sk):
-    clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2))
+ def train_mlp(position_sk):
+     clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
+     X, y = load_svmlight_file(train_features_fname+str(position_sk)+".svm")
+
+     clf.fit(X, y)
+
+     dump(clf, xgboost_model_location+str(position_sk)+'.joblib')
+
+def train_svc(position_sk):
+    clf = svm.SVC(gamma=0.001, probability=True)
     X, y = load_svmlight_file(train_features_fname+str(position_sk)+".svm")
 
     clf.fit(X, y)
@@ -333,7 +342,7 @@ def generate_submission(f_test, f_history, i, get_ground_truth, models):
                     for model in models:
                         score = model.predict(dfeat)[0]
                         output.append(score)
-                elif model_name == 'mlp':
+                else:
                     for model in models:
                         score = model.predict_proba(pred_X_feat)[0][0]
                         output.append(score)
@@ -378,14 +387,19 @@ if __name__ == "__main__":
                 train_xgboost(offset+1+i)
             elif model_name == 'mlp':
                 train_mlp(offset + 1 + i)
+			elif model_name == 'svc':
+                train_svc(offset + 1 + i)
 
     elif step == 'predict':
         models = []
+        # model = load(xgboost_model_location + str(1) + '.joblib')
+        # models.append(model)
+        # generate_submission(test_input[0], test_prehistory[0], offset, tracks_features_df, models)
         for j in range(10):
             if model_name == 'boosting':
                 model = xgboost.Booster()  # init model
                 model.load_model(xgboost_model_location+str(j+1)+".npz")  # load data
-            elif model_name == 'mlp':
+            elif model_name == 'svc':
                 model = load(xgboost_model_location+str(j+1)+'.joblib')
 
             models.append(model)
